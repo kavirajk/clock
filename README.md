@@ -6,14 +6,14 @@ A logical clock is a mechanism for capturing chronological and causal relationsh
 
 Given any two events across multiple nodes in the distributed system, logical clocks help in answering queries like "Does event A *happened-before* B" or "Is event B *concurrent* to event A"
 
-Implementation of dotted version vector is based on the paper (Scalable and Accurate Causality Tracking for Eventually Consistent Stores)[https://haslab.uminho.pt/tome/files/dvvset-dais.pdf]
+Implementation of dotted version vector is based on the paper [Scalable and Accurate Causality Tracking for Eventually Consistent Stores](https://haslab.uminho.pt/tome/files/dvvset-dais.pdf)
 
 ## Vector clocks vs Version Vectors
 Although they both have same data structure representation, they solve different problems.
 
 Vector clocks are used to partial order between any two events in the distributed systems, where as Version Vectors are used to partial order only events that changes datum(say you want to keep multiple versions of same key that are updated concurrently).
 
-For more details about the differences, there good article (here)[https://haslab.wordpress.com/2011/07/08/version-vectors-are-not-vector-clocks/]
+For more details about the differences, there good article [here](https://haslab.wordpress.com/2011/07/08/version-vectors-are-not-vector-clocks/)
 
 ## Usage (Vector Clocks)
 ```rust
@@ -103,5 +103,5 @@ https://riak.com/posts/technical/vector-clocks-revisited-part-2-dotted-version-v
 3. https://lamport.azurewebsites.net/pubs/time-clocks.pdf
 
 ## TODO
-[] - working example for dotted version vectors (may be replication of delta-CRDT map?)
-[] - make it as rust crate
+- [] working example for dotted version vectors (may be replication of delta-CRDT map?)
+- [] make it as rust crate
