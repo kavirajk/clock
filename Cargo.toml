@@ -1,8 +1,12 @@
 [package]
-name = "clock-rust"
+name = "clock"
 version = "0.1.0"
 authors = ["Kaviraj <kavirajkanagaraj@gmail.com>"]
+description = "Modern logical clocks implementation in Rust"
 edition = "2018"
+repository="https://github.com/kavirajk/clock"
+categories=["distributed systems", "logical clocks"]
+tags=["vector clocks", "version vector", "dotted version vector"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
