@@ -1,11 +1,11 @@
 [package]
 name = "logical_clock"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Kaviraj <kavirajkanagaraj@gmail.com>"]
 description = "Modern logical clocks implementation in Rust"
 edition = "2018"
 repository="https://github.com/kavirajk/clock"
-categories=["distributed systems", "logical clocks"]
+categories=["distributed-systems", "logical-clocks"]
 tags=["vector clocks", "version vector", "dotted version vector"]
 license="MIT"
 
