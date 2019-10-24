@@ -1,5 +1,7 @@
 mod dvv;
 mod vclock;
+pub use dvv::VersionVector;
+pub use vclock::VectorClock;
 
 #[cfg(test)]
 mod tests {

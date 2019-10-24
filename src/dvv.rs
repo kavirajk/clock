@@ -1,26 +1,26 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-struct VersionVector {
+pub struct VersionVector {
     vector:HashMap<String, i64>,
     // TODO(kavi): Add support mutex for thread-safe?
 }
 
-struct Dot (String, i64);
+pub struct Dot (String, i64);
 
 impl VersionVector {
-    fn new() -> VersionVector {
+    pub fn new() -> VersionVector {
 	VersionVector{
 	    vector: HashMap::new(),
 	}
     }
 
-    fn increment(mut self, node_id:&str) -> Self{
+    pub fn increment(mut self, node_id:&str) -> Self{
 	self.vector.entry(node_id.to_string()).and_modify(|e| *e += 1).or_insert(1);
 	self
     }
 
-    fn descends(&self, w:&VersionVector) -> bool {
+    pub fn descends(&self, w:&VersionVector) -> bool {
 	let keys = VersionVector::all_keys(&[&self.vector, &w.vector]);
 	// All the keys from 'self' should be greater than or equal to same key from 'w'.
 	// So, now if both self and w are same, then it descends(v, v) => true
@@ -40,12 +40,12 @@ impl VersionVector {
 	true
     }
 
-    fn concurrent(&self, w:&VersionVector) -> bool {
+    pub fn concurrent(&self, w:&VersionVector) -> bool {
 	// if neither of them descends from another, then they are concurrent
 	!(self.descends(w) || w.descends(self))
     }
 
-    fn descends_dot(&self, w:&Dot) -> bool {
+    pub fn descends_dot(&self, w:&Dot) -> bool {
 	let v = match self.vector.get(&w.0) {
 	    None => 0,
 	    Some(v) => *v
@@ -54,7 +54,7 @@ impl VersionVector {
     }
 
     /// merges the two given vectors via point-wise max.
-    fn merge(&self, w:&VersionVector) -> VersionVector {
+    pub fn merge(&self, w:&VersionVector) -> VersionVector {
 	let slice = vec![&self.vector, &w.vector];
 	let keys = VersionVector::all_keys(&slice[..]);
 	let mut res:HashMap<String, i64> = HashMap::new();
@@ -77,7 +77,7 @@ impl VersionVector {
 	}
     }
     
-    fn get_dot(&self, node_id:&str) -> Dot {
+    pub fn get_dot(&self, node_id:&str) -> Dot {
 	let count = match self.vector.get(node_id) {
 	    None => 0,
 	    Some(v) => *v
@@ -99,7 +99,7 @@ impl VersionVector {
 
 
 impl Dot {
-    fn descends_vv(&self, w:&VersionVector) -> bool {
+    pub fn descends_vv(&self, w:&VersionVector) -> bool {
 	let v = match w.vector.get(&self.0) {
 	    None => 0,
 	    Some(v) => *v
@@ -127,9 +127,15 @@ fn test_vv_new() {
 #[test]
 fn test_vv_merge() {
     // [2, 1]
-    let v1 = VersionVector::new().increment("A").increment("A").increment("B");
+    let v1 = VersionVector::new()
+	.increment("A")
+	.increment("A")
+	.increment("B");
     // [1, 2]
-    let v2 = VersionVector::new().increment("B").increment("B").increment("A");
+    let v2 = VersionVector::new()
+	.increment("B")
+	.increment("B")
+	.increment("A");
 
     let v3 = v1.merge(&v2);
 
@@ -142,19 +148,45 @@ fn test_vv_merge() {
 fn test_vv_descends() {
     // Case 0: v2 descends v1
     // [2, 3, 2]
-    let v1 = VersionVector::new().increment("A").increment("A").increment("B").increment("B").increment("B").increment("C").increment("C");
+    let v1 = VersionVector::new()
+	.increment("A")
+	.increment("A")
+	.increment("B")
+	.increment("B")
+	.increment("B")
+	.increment("C")
+	.increment("C");
 	
     // [3, 4, 2]
-    let v2 = VersionVector::new().increment("A").increment("B").increment("B").increment("C");
+    let v2 = VersionVector::new()
+	.increment("A")
+	.increment("B")
+	.increment("B")
+	.increment("C");
+    
     assert!(v1.descends(&v2));
     assert!(!v2.descends(&v1));
 	
     // Case 1: Concurrent
     // [2, 3, 2]
-    let v1 = VersionVector::new().increment("A").increment("A").increment("B").increment("B").increment("B").increment("C").increment("C");
+    let v1 = VersionVector::new()
+	.increment("A")
+	.increment("A")
+	.increment("B")
+	.increment("B")
+	.increment("B")
+	.increment("C")
+	.increment("C");
 
     // [1, 4, 1]
-    let v2 = VersionVector::new().increment("A").increment("B").increment("B").increment("B").increment("B").increment("C");
+    let v2 = VersionVector::new()
+	.increment("A")
+	.increment("B")
+	.increment("B")
+	.increment("B")
+	.increment("B")
+	.increment("C");
+    
     assert!(!v1.descends(&v2));
     assert!(!v2.descends(&v1)); // neither v2 descends Case
 }
@@ -163,19 +195,44 @@ fn test_vv_descends() {
 fn test_vv_concurrent() {
     // Case 0: not concurrent
     // [2, 3, 2]
-    let v1 = VersionVector::new().increment("A").increment("A").increment("B").increment("B").increment("B").increment("C").increment("C");
+    let v1 = VersionVector::new().
+	increment("A")
+	.increment("A")
+	.increment("B")
+	.increment("B")
+	.increment("B")
+	.increment("C")
+	.increment("C");
 	
     // [3, 4, 2]
-    let v2 = VersionVector::new().increment("A").increment("B").increment("B").increment("C");
+    let v2 = VersionVector::new()
+	.increment("A")
+	.increment("B")
+	.increment("B")
+	.increment("C");
+    
     assert!(!v1.concurrent(&v2));
     assert!(!v2.concurrent(&v1));
 	
     // Case 1: Concurrent
     // [2, 3, 2]
-    let v1 = VersionVector::new().increment("A").increment("A").increment("B").increment("B").increment("B").increment("C").increment("C");
+    let v1 = VersionVector::new()
+	.increment("A")
+	.increment("A")
+	.increment("B")
+	.increment("B")
+	.increment("B")
+	.increment("C")
+	.increment("C");
 
     // [1, 4, 1]
-    let v2 = VersionVector::new().increment("A").increment("B").increment("B").increment("B").increment("B").increment("C");
+    let v2 = VersionVector::new().
+	increment("A").
+	increment("B").
+	increment("B").
+	increment("B").
+	increment("B").
+	increment("C");
     assert!(v1.concurrent(&v2));
     assert!(v2.concurrent(&v1));
 }
@@ -191,14 +248,20 @@ fn test_get_dot() {
 
 #[test]
 fn test_descends_dot() {
-    let v = VersionVector::new().increment("A").increment("A").increment("B");
+    let v = VersionVector::new()
+	.increment("A")
+	.increment("A")
+	.increment("B");
 
     let dot = Dot("A".to_string(), 3);
 
     assert!(dot.descends_vv(&v));
     assert!(!v.descends_dot(&dot));
 
-    let v = VersionVector::new().increment("A").increment("A").increment("B");
+    let v = VersionVector::new()
+	.increment("A")
+	.increment("A")
+	.increment("B");
 
     let dot = Dot("A".to_string(), 1);
     assert!(!dot.descends_vv(&v));

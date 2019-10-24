@@ -1,19 +1,19 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-struct VectorClock {
+pub struct VectorClock {
     vector: HashMap<String, i64>,
     // TODO(kavi): Add support mutex for thread-safe?
 }
 
 impl VectorClock {
-    fn new() -> VectorClock {
+    pub fn new() -> VectorClock {
         VectorClock {
             vector: HashMap::new(),
         }
     }
 
-    fn increment(mut self, node_id: &str) -> Self {
+    pub fn increment(mut self, node_id: &str) -> Self {
         self.vector
             .entry(node_id.to_string())
             .and_modify(|e| *e += 1)
@@ -21,7 +21,7 @@ impl VectorClock {
         self
     }
 
-    fn happened_before(&self, w: &VectorClock) -> bool {
+    pub fn happened_before(&self, w: &VectorClock) -> bool {
         // happened_before check partial order between two vector clocks given.
         // If v *happens-before* w iff for every element i in v should be less than equal
         // to its corresponding element in w And at least one element should be strictly smaller
@@ -51,12 +51,12 @@ impl VectorClock {
         return sc > 0
     }
 
-    fn concurrent(&self, w: &VectorClock) -> bool {
+    pub fn concurrent(&self, w: &VectorClock) -> bool {
         !(self.happened_before(w) || w.happened_before(self))
     }
 
     /// merges the two given vectors via point-wise max.
-    fn merge(&self, w: &VectorClock) -> VectorClock {
+    pub fn merge(&self, w: &VectorClock) -> VectorClock {
         let slice = vec![&self.vector, &w.vector];
         let keys = VectorClock::all_keys(&slice[..]);
         let mut res: HashMap<String, i64> = HashMap::new();
