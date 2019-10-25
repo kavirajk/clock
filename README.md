@@ -1,7 +1,7 @@
 # Logical clocks
 
 [![Package version](https://img.shields.io/crates/v/logical_clock.svg)](https://crates.io/crates/logical_clock)
-[![Package docs](https://docs.rs/logical_clock/badge.svg)](https://docs.rs/logical_clock/badge.svg)
+[![Package docs](https://docs.rs/logical_clock/badge.svg)](https://docs.rs/logical_clock)
 [![License](https://img.shields.io/badge/license-MIT%20License-blue.svg)](https://github.com/kavirajk/clock/blob/master/LICENSE)
 
 
@@ -55,18 +55,8 @@ impl KVStore {
     }
 
     fn set(mut self, client_id:&str, context: &VersionVector, key: &str, val: i64) -> Self{
-	// if context dominates local vv, then just overwite
-	// or else
-	// frontier = merge
-	// get dot
-	// dotted_object
-	// merge siblings
-
+	// if incoming request context descends from local clock, just overwrite.
 	if context.descends(&self.vv) {
-	    // just overwrite
-	    // inc self.vv.inc("")
-	    // just set the record of key to vec![Value{}]
-
 	    self.vv = self.vv.inc(client_id);
 	    let dot = self.vv.get_dot(client_id);
 	    let new_obj = Value{val: val, dot: dot};
@@ -159,6 +149,5 @@ https://riak.com/posts/technical/vector-clocks-revisited-part-2-dotted-version-v
 2. https://github.com/ricardobcl/Dotted-Version-Vectors
 3. https://lamport.azurewebsites.net/pubs/time-clocks.pdf
 
-## TODO
-- [] working example for dotted version vectors (may be replication of delta-CRDT map?)
-- [] make it as rust crate
+## Licence
+MIT
