@@ -1,27 +1,3 @@
-# Logical clocks
-
-[![Package version](https://img.shields.io/crates/v/logical_clock.svg)](https://crates.io/crates/logical_clock)
-[![Package docs](https://docs.rs/logical_clock/badge.svg)](https://docs.rs/logical_clock/badge.svg)
-[![License](https://img.shields.io/badge/license-MIT%20License-blue.svg)](https://github.com/kavirajk/clock/blob/master/LICENSE)
-
-
-`clocks` implements some of the modern logical clocks (vector clocks and dotted version vector).
-
-A logical clock is a mechanism for capturing chronological and causal relationships(cause and effect, Event A caused event B, also called as *happened-before* relation) in a distributed system.
-
-Given any two events across multiple nodes in the distributed system, logical clocks help in answering queries like "Does event A *happened-before* B" or "Is event B *concurrent* to event A"
-
-Implementation of dotted version vector is based on the paper [Scalable and Accurate Causality Tracking for Eventually Consistent Stores](https://haslab.uminho.pt/tome/files/dvvset-dais.pdf)
-
-## Vector clocks vs Version Vectors
-Although they both have same data structure representation, they solve different problems.
-
-Vector clocks are used to partial order between any two events in the distributed systems, where as Version Vectors are used to partial order only events that changes datum(say you want to keep multiple versions of same key that are updated concurrently).
-
-For more details about the differences, there good article [here](https://haslab.wordpress.com/2011/07/08/version-vectors-are-not-vector-clocks/)
-
-## Usage (A simple Key Value Store, simulating multiple clients)
-```rust
 use logical_clock::{VersionVector, Dot};
 use std::collections::HashMap;
 
@@ -55,18 +31,8 @@ impl KVStore {
     }
 
     fn set(mut self, client_id:&str, context: &VersionVector, key: &str, val: i64) -> Self{
-	// if context dominates local vv, then just overwite
-	// or else
-	// frontier = merge
-	// get dot
-	// dotted_object
-	// merge siblings
-
+	// if incoming request context descends from local clock, just overwrite.
 	if context.descends(&self.vv) {
-	    // just overwrite
-	    // inc self.vv.inc("")
-	    // just set the record of key to vec![Value{}]
-
 	    self.vv = self.vv.inc(client_id);
 	    let dot = self.vv.get_dot(client_id);
 	    let new_obj = Value{val: val, dot: dot};
@@ -144,21 +110,3 @@ fn main() {
     println!("vv: {:?}", kv.vv);
 
 }
-
-```
-
-## Logical clocks in Real time
-1. Go race detector uses vector clocks to detect data race between go routines. Basic idea is every go routine have its own vector clock and when a shared memory is accessed by multiple goroutines, their vector clocks are compared to find if they are concurrent!
-https://www.slideshare.net/InfoQ/looking-inside-a-race-detector
-
-2. Riak Key Value store uses Dotted Version Vector to track concurrent versions of same key in multiple replica.
-https://riak.com/posts/technical/vector-clocks-revisited-part-2-dotted-version-vectors/index.html?p=9929.html
-
-## References
-1. https://haslab.uminho.pt/tome/files/dvvset-dais.pdf
-2. https://github.com/ricardobcl/Dotted-Version-Vectors
-3. https://lamport.azurewebsites.net/pubs/time-clocks.pdf
-
-## TODO
-- [] working example for dotted version vectors (may be replication of delta-CRDT map?)
-- [] make it as rust crate

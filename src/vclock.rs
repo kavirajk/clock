@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
 
+#[derive(Default)]
 pub struct VectorClock {
     vector: HashMap<String, i64>,
     // TODO(kavi): Add support mutex for thread-safe?
@@ -13,7 +14,7 @@ impl VectorClock {
         }
     }
 
-    pub fn increment(mut self, node_id: &str) -> Self {
+    pub fn inc(mut self, node_id: &str) -> Self {
         self.vector
             .entry(node_id.to_string())
             .and_modify(|e| *e += 1)
@@ -48,7 +49,7 @@ impl VectorClock {
                 sc +=1;
             }
         }
-        return sc > 0
+        sc > 0
     }
 
     pub fn concurrent(&self, w: &VectorClock) -> bool {
@@ -92,12 +93,12 @@ impl VectorClock {
 #[test]
 fn test_vv_new() {
     let mut vv = VectorClock::new();
-    vv = vv.increment("A").increment("B");
+    vv = vv.inc("A").inc("B");
 
     assert_eq!(vv.vector.get("A").unwrap(), &1_i64);
     assert_eq!(vv.vector.get("B").unwrap(), &1_i64);
 
-    vv = vv.increment("A").increment("C");
+    vv = vv.inc("A").inc("C");
 
     assert_eq!(vv.vector.get("A").unwrap(), &2_i64);
     assert_eq!(vv.vector.get("C").unwrap(), &1_i64);
@@ -107,14 +108,14 @@ fn test_vv_new() {
 fn test_vv_merge() {
     // [2, 1]
     let v1 = VectorClock::new()
-        .increment("A")
-        .increment("A")
-        .increment("B");
+        .inc("A")
+        .inc("A")
+        .inc("B");
     // [1, 2]
     let v2 = VectorClock::new()
-        .increment("B")
-        .increment("B")
-        .increment("A");
+        .inc("B")
+        .inc("B")
+        .inc("A");
 
     let v3 = v1.merge(&v2);
 
@@ -128,46 +129,46 @@ fn test_vv_happened_before() {
     // Case 0: v1 happened_before v2
     // [2, 3, 2]
     let v1 = VectorClock::new()
-        .increment("A")
-        .increment("A")
-        .increment("B")
-        .increment("B")
-        .increment("B")
-        .increment("C")
-        .increment("C");
+        .inc("A")
+        .inc("A")
+        .inc("B")
+        .inc("B")
+        .inc("B")
+        .inc("C")
+        .inc("C");
 
     // [2, 4, 2]
     let v2 = VectorClock::new()
-        .increment("A")
-        .increment("A")
-        .increment("B")
-        .increment("B")
-        .increment("B")
-        .increment("B")
-        .increment("C")
-        .increment("C");
+        .inc("A")
+        .inc("A")
+        .inc("B")
+        .inc("B")
+        .inc("B")
+        .inc("B")
+        .inc("C")
+        .inc("C");
     assert!(v1.happened_before(&v2));
     assert!(!v2.happened_before(&v1));
 
     // Case 1: Concurrent
     // [2, 3, 2]
     let v1 = VectorClock::new()
-        .increment("A")
-        .increment("A")
-        .increment("B")
-        .increment("B")
-        .increment("B")
-        .increment("C")
-        .increment("C");
+        .inc("A")
+        .inc("A")
+        .inc("B")
+        .inc("B")
+        .inc("B")
+        .inc("C")
+        .inc("C");
 
     // [1, 4, 1]
     let v2 = VectorClock::new()
-        .increment("A")
-        .increment("B")
-        .increment("B")
-        .increment("B")
-        .increment("B")
-        .increment("C");
+        .inc("A")
+        .inc("B")
+        .inc("B")
+        .inc("B")
+        .inc("B")
+        .inc("C");
     assert!(!v1.happened_before(&v2));
     assert!(!v2.happened_before(&v1));
 }
@@ -177,42 +178,42 @@ fn test_vv_concurrent() {
     // Case 0: not concurrent
     // [2, 3, 2]
     let v1 = VectorClock::new()
-        .increment("A")
-        .increment("A")
-        .increment("B")
-        .increment("B")
-        .increment("B")
-        .increment("C")
-        .increment("C");
+        .inc("A")
+        .inc("A")
+        .inc("B")
+        .inc("B")
+        .inc("B")
+        .inc("C")
+        .inc("C");
 
     // [3, 4, 2]
     let v2 = VectorClock::new()
-        .increment("A")
-        .increment("B")
-        .increment("B")
-        .increment("C");
+        .inc("A")
+        .inc("B")
+        .inc("B")
+        .inc("C");
     assert!(!v1.concurrent(&v2));
     assert!(!v2.concurrent(&v1));
 
     // Case 1: Concurrent
     // [2, 3, 2]
     let v1 = VectorClock::new()
-        .increment("A")
-        .increment("A")
-        .increment("B")
-        .increment("B")
-        .increment("B")
-        .increment("C")
-        .increment("C");
+        .inc("A")
+        .inc("A")
+        .inc("B")
+        .inc("B")
+        .inc("B")
+        .inc("C")
+        .inc("C");
 
     // [1, 4, 1]
     let v2 = VectorClock::new()
-        .increment("A")
-        .increment("B")
-        .increment("B")
-        .increment("B")
-        .increment("B")
-        .increment("C");
+        .inc("A")
+        .inc("B")
+        .inc("B")
+        .inc("B")
+        .inc("B")
+        .inc("C");
     assert!(v1.concurrent(&v2));
     assert!(v2.concurrent(&v1));
 }

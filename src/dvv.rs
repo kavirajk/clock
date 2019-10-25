@@ -1,11 +1,13 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
 
+#[derive(Clone, Default, Debug)]
 pub struct VersionVector {
     vector:HashMap<String, i64>,
     // TODO(kavi): Add support mutex for thread-safe?
 }
 
+#[derive(Clone, Debug)]
 pub struct Dot (String, i64);
 
 impl VersionVector {
@@ -15,7 +17,7 @@ impl VersionVector {
 	}
     }
 
-    pub fn increment(mut self, node_id:&str) -> Self{
+    pub fn inc(mut self, node_id:&str) -> Self{
 	self.vector.entry(node_id.to_string()).and_modify(|e| *e += 1).or_insert(1);
 	self
     }
@@ -58,7 +60,6 @@ impl VersionVector {
 	let slice = vec![&self.vector, &w.vector];
 	let keys = VersionVector::all_keys(&slice[..]);
 	let mut res:HashMap<String, i64> = HashMap::new();
-	println!("keys: {:?}", keys);
 	for k in keys.iter() {
 	    let e1 = match self.vector.get(k) {
 		None => 0,
@@ -105,7 +106,10 @@ impl Dot {
 	    Some(v) => *v
 	};
 
-	return self.1 >= v
+	self.1 >= v
+    }
+    pub fn descends(&self, w:&Dot) -> bool {
+	self.0 == w.0 && self.1 >= w.1
     }
 }
 
@@ -113,12 +117,12 @@ impl Dot {
 #[test]
 fn test_vv_new() {
     let mut vv = VersionVector::new();
-    vv = vv.increment("A").increment("B");
+    vv = vv.inc("A").inc("B");
 
     assert_eq!(vv.vector.get("A").unwrap(), &1_i64);
     assert_eq!(vv.vector.get("B").unwrap(), &1_i64);
 
-    vv = vv.increment("A").increment("C");
+    vv = vv.inc("A").inc("C");
 
     assert_eq!(vv.vector.get("A").unwrap(), &2_i64);
     assert_eq!(vv.vector.get("C").unwrap(), &1_i64);
@@ -128,14 +132,14 @@ fn test_vv_new() {
 fn test_vv_merge() {
     // [2, 1]
     let v1 = VersionVector::new()
-	.increment("A")
-	.increment("A")
-	.increment("B");
+	.inc("A")
+	.inc("A")
+	.inc("B");
     // [1, 2]
     let v2 = VersionVector::new()
-	.increment("B")
-	.increment("B")
-	.increment("A");
+	.inc("B")
+	.inc("B")
+	.inc("A");
 
     let v3 = v1.merge(&v2);
 
@@ -149,20 +153,20 @@ fn test_vv_descends() {
     // Case 0: v2 descends v1
     // [2, 3, 2]
     let v1 = VersionVector::new()
-	.increment("A")
-	.increment("A")
-	.increment("B")
-	.increment("B")
-	.increment("B")
-	.increment("C")
-	.increment("C");
+	.inc("A")
+	.inc("A")
+	.inc("B")
+	.inc("B")
+	.inc("B")
+	.inc("C")
+	.inc("C");
 	
     // [3, 4, 2]
     let v2 = VersionVector::new()
-	.increment("A")
-	.increment("B")
-	.increment("B")
-	.increment("C");
+	.inc("A")
+	.inc("B")
+	.inc("B")
+	.inc("C");
     
     assert!(v1.descends(&v2));
     assert!(!v2.descends(&v1));
@@ -170,22 +174,22 @@ fn test_vv_descends() {
     // Case 1: Concurrent
     // [2, 3, 2]
     let v1 = VersionVector::new()
-	.increment("A")
-	.increment("A")
-	.increment("B")
-	.increment("B")
-	.increment("B")
-	.increment("C")
-	.increment("C");
+	.inc("A")
+	.inc("A")
+	.inc("B")
+	.inc("B")
+	.inc("B")
+	.inc("C")
+	.inc("C");
 
     // [1, 4, 1]
     let v2 = VersionVector::new()
-	.increment("A")
-	.increment("B")
-	.increment("B")
-	.increment("B")
-	.increment("B")
-	.increment("C");
+	.inc("A")
+	.inc("B")
+	.inc("B")
+	.inc("B")
+	.inc("B")
+	.inc("C");
     
     assert!(!v1.descends(&v2));
     assert!(!v2.descends(&v1)); // neither v2 descends Case
@@ -196,20 +200,20 @@ fn test_vv_concurrent() {
     // Case 0: not concurrent
     // [2, 3, 2]
     let v1 = VersionVector::new().
-	increment("A")
-	.increment("A")
-	.increment("B")
-	.increment("B")
-	.increment("B")
-	.increment("C")
-	.increment("C");
+	inc("A")
+	.inc("A")
+	.inc("B")
+	.inc("B")
+	.inc("B")
+	.inc("C")
+	.inc("C");
 	
     // [3, 4, 2]
     let v2 = VersionVector::new()
-	.increment("A")
-	.increment("B")
-	.increment("B")
-	.increment("C");
+	.inc("A")
+	.inc("B")
+	.inc("B")
+	.inc("C");
     
     assert!(!v1.concurrent(&v2));
     assert!(!v2.concurrent(&v1));
@@ -217,29 +221,29 @@ fn test_vv_concurrent() {
     // Case 1: Concurrent
     // [2, 3, 2]
     let v1 = VersionVector::new()
-	.increment("A")
-	.increment("A")
-	.increment("B")
-	.increment("B")
-	.increment("B")
-	.increment("C")
-	.increment("C");
+	.inc("A")
+	.inc("A")
+	.inc("B")
+	.inc("B")
+	.inc("B")
+	.inc("C")
+	.inc("C");
 
     // [1, 4, 1]
     let v2 = VersionVector::new().
-	increment("A").
-	increment("B").
-	increment("B").
-	increment("B").
-	increment("B").
-	increment("C");
+	inc("A").
+	inc("B").
+	inc("B").
+	inc("B").
+	inc("B").
+	inc("C");
     assert!(v1.concurrent(&v2));
     assert!(v2.concurrent(&v1));
 }
 
 #[test]
 fn test_get_dot() {
-    let v = VersionVector::new().increment("A").increment("B");
+    let v = VersionVector::new().inc("A").inc("B");
     let dot = v.get_dot("A");
 
     assert_eq!("A", dot.0);
@@ -249,9 +253,9 @@ fn test_get_dot() {
 #[test]
 fn test_descends_dot() {
     let v = VersionVector::new()
-	.increment("A")
-	.increment("A")
-	.increment("B");
+	.inc("A")
+	.inc("A")
+	.inc("B");
 
     let dot = Dot("A".to_string(), 3);
 
@@ -259,9 +263,9 @@ fn test_descends_dot() {
     assert!(!v.descends_dot(&dot));
 
     let v = VersionVector::new()
-	.increment("A")
-	.increment("A")
-	.increment("B");
+	.inc("A")
+	.inc("A")
+	.inc("B");
 
     let dot = Dot("A".to_string(), 1);
     assert!(!dot.descends_vv(&v));

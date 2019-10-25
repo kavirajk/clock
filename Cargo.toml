@@ -1,14 +1,15 @@
 [package]
 name = "logical_clock"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Kaviraj <kavirajkanagaraj@gmail.com>"]
 description = "Modern logical clocks implementation in Rust"
 edition = "2018"
 repository="https://github.com/kavirajk/clock"
 categories=["distributed-systems", "logical-clocks"]
-tags=["vector clocks", "version vector", "dotted version vector"]
+keywords=["vector-clocks", "version-vector", "clock"]
 license="MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+nanoid = "0.2.0"
